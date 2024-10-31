@@ -1,6 +1,8 @@
 package com.juan.helpfood.controllers;
 
+import com.juan.helpfood.dtos.menusDTOs.CreateMenuAndDishesDTO;
 import com.juan.helpfood.dtos.menusDTOs.CreateMenuDTO;
+import com.juan.helpfood.dtos.menusDTOs.MenuAndDishesDTO;
 import com.juan.helpfood.dtos.menusDTOs.MenuDTO;
 import com.juan.helpfood.services.MenuService;
 import org.springframework.http.HttpStatus;
@@ -27,5 +29,10 @@ public class MenuController {
     public ResponseEntity<List<MenuDTO>> getMenusByRestaurant(@PathVariable Integer restaurantId) {
         List<MenuDTO> menus = menuService.getMenusByRestaurantId(restaurantId);
         return ResponseEntity.status(HttpStatus.OK).body(menus);
+    }
+    @PostMapping("restaurant/{restaurantId}")
+    public ResponseEntity<List<MenuAndDishesDTO>> createMenuAndDishes(@RequestBody List<CreateMenuAndDishesDTO> menuAndDishesDTOList, @PathVariable Integer restaurantId) {
+        List<MenuAndDishesDTO> menus = menuService.createMenuAndDishes(menuAndDishesDTOList,restaurantId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(menus);
     }
 }

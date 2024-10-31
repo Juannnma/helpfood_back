@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class DishDTO {
     private String description;
     private BigDecimal price;
     private Integer menuId;
+    private List<String> tagsId;
 }

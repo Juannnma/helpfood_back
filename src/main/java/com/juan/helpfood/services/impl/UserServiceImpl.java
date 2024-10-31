@@ -87,6 +87,12 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(()->new NoSuchElementException("User not found with id: " + id));
         return UserMapper.toUserDto(user);
     }
+    @Override
+    public UserDTO getUserByEmail(String mail){
+        User user = userRepository.findByEmail(mail)
+                .orElseThrow(()->new NoSuchElementException("User not found with email: " + mail));
+        return UserMapper.toUserDto(user);
+    }
 
     @Override
     public List<UserDTO> getAllUsers() {

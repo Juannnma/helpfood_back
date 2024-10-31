@@ -7,6 +7,7 @@ import com.juan.helpfood.dtos.restaurantsDTOs.RestaurantDTO;
 import com.juan.helpfood.dtos.restaurantsDTOs.RestaurantWithMenusDTO;
 import com.juan.helpfood.entities.Restaurant;
 import com.juan.helpfood.entities.User;
+import com.juan.helpfood.mappers.DishMapper;
 import com.juan.helpfood.mappers.RestaurantMapper;
 import com.juan.helpfood.repositories.RestaurantRepository;
 import com.juan.helpfood.repositories.UserRepository;
@@ -95,9 +96,11 @@ public class RestaurantServiceImpl implements RestaurantService {
         RestaurantWithMenusDTO restaurantWithMenusDTO = new RestaurantWithMenusDTO();
         restaurantWithMenusDTO.setId(restaurant.getId());
         restaurantWithMenusDTO.setName(restaurant.getName());
+        restaurantWithMenusDTO.setOwnerId(restaurant.getOwner().getId());
         restaurantWithMenusDTO.setDescription(restaurant.getDescription());
         restaurantWithMenusDTO.setOpeningHours(restaurant.getOpeningHours());
         restaurantWithMenusDTO.setClosingHours(restaurant.getClosingHours());
+        restaurantWithMenusDTO.setCelNumber(restaurant.getCelNumber());
         restaurantWithMenusDTO.setAddress(restaurant.getAddress());
 
         List<MenuAndDishesDTO> menuAndDishesDTOS = restaurant.getMenuList().stream().map(
@@ -106,16 +109,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                             menuAndDishesDTO.setId(menu.getId());
                             menuAndDishesDTO.setName(menu.getName());
 
-                            List<DishDTO> dishDTOS = menu.getDishes().stream().map(
-                                    dish -> {
-                                        DishDTO dishDTO = new DishDTO();
-                                        dishDTO.setId(dish.getId());
-                                        dishDTO.setName(dish.getName());
-                                        dishDTO.setDescription(dish.getDescription());
-                                        dishDTO.setPrice(dish.getPrice());
-                                        return dishDTO;
-                                    }
-                            ).toList();
+                            List<DishDTO> dishDTOS = menu.getDishes().stream().map(DishMapper::toDishDTO).toList();
 
                             menuAndDishesDTO.setDishes(dishDTOS);
                             return menuAndDishesDTO;
