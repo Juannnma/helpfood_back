@@ -1,6 +1,7 @@
 package com.juan.helpfood.mappers;
 
-import com.juan.helpfood.dtos.UserDTO;
+import com.juan.helpfood.dtos.userDTOs.SignInUserDTO;
+import com.juan.helpfood.dtos.userDTOs.UserDTO;
 import com.juan.helpfood.entities.User;
 
 public class UserMapper {
@@ -10,20 +11,19 @@ public class UserMapper {
         }
         UserDTO userDTO = new UserDTO();
         userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
+        userDTO.setUsername(user.getUsername());
         userDTO.setEmail(user.getEmail());
-        userDTO.setPassword(user.getPassword());
         return userDTO;
     }
-    public static User toUser(UserDTO userDTO) {
-        if (userDTO == null) {
+    public static User toUser(SignInUserDTO signInUserDTO) {
+        if (signInUserDTO == null) {
             return null;
         }
         User user = new User();
-        user.setId(userDTO.getId());
-        user.setName(userDTO.getName());
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
+        user.setId(signInUserDTO.getId());
+        user.setUsername(signInUserDTO.getUsername());
+        user.setEmail(signInUserDTO.getEmail());
+        user.setPassword(signInUserDTO.getPassword());
         return user;
     }
 }

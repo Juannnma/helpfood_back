@@ -24,7 +24,7 @@ public class User implements UserDetails {
     @Size(max = 255)
     @NotNull
     @Column(name = "name", nullable = false)
-    private String name;
+    private String username;
 
     @Size(max = 255)
     @NotNull

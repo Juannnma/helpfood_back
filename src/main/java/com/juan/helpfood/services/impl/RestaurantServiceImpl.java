@@ -1,6 +1,10 @@
 package com.juan.helpfood.services.impl;
 
-import com.juan.helpfood.dtos.RestaurantDTO;
+import com.juan.helpfood.dtos.dishesDTOs.DishDTO;
+import com.juan.helpfood.dtos.menusDTOs.MenuAndDishesDTO;
+import com.juan.helpfood.dtos.restaurantsDTOs.CreateRestaurantDTO;
+import com.juan.helpfood.dtos.restaurantsDTOs.RestaurantDTO;
+import com.juan.helpfood.dtos.restaurantsDTOs.RestaurantWithMenusDTO;
 import com.juan.helpfood.entities.Restaurant;
 import com.juan.helpfood.entities.User;
 import com.juan.helpfood.mappers.RestaurantMapper;
@@ -27,54 +31,45 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public RestaurantDTO createRestaurant(RestaurantDTO restaurantDTO) {
-        // Validar si el propietario (owner) existe en la base de datos
-        User owner = userRepository.findById(restaurantDTO.getOwner().getId())
-                .orElseThrow(() -> new NoSuchElementException("Owner not found with id: " + restaurantDTO.getOwner().getId()));
+    public RestaurantDTO createRestaurant(CreateRestaurantDTO createRestaurantDTO) {
+        User owner = userRepository.findById(createRestaurantDTO.getOwnerId())
+                .orElseThrow(() -> new NoSuchElementException("Owner not found with id: " + createRestaurantDTO.getOwnerId()));
 
-        // Convertir el DTO a entidad
-        Restaurant restaurant = RestaurantMapper.toRestaurant(restaurantDTO);
+        Restaurant restaurant = RestaurantMapper.toRestaurant(createRestaurantDTO,owner);
 
-        // Asignar el owner al restaurante
-        restaurant.setOwner(owner);
-
-        // Guardar el restaurante
         restaurant = restaurantRepository.save(restaurant);
 
-        // Devolver el DTO del restaurante guardado
         return RestaurantMapper.toRestaurantDTO(restaurant);
     }
 
     @Override
-    public RestaurantDTO updateRestaurant(int id,RestaurantDTO restaurantDTO) {
-        // Verificar si el restaurante existe
+    public RestaurantDTO updateRestaurant(Integer id,RestaurantDTO restaurantDTO) {
         Restaurant existingRestaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Restaurant not found with id: " + id));
 
-        // Si hay un cambio en el owner, buscar el nuevo propietario
-        if (restaurantDTO.getOwner() != null && (restaurantDTO.getOwner().getId() != (existingRestaurant.getOwner().getId()))) {
-            User newOwner = userRepository.findById(restaurantDTO.getOwner().getId())
-                    .orElseThrow(() -> new NoSuchElementException("Owner not found with id: " + restaurantDTO.getOwner().getId()));
+        if (restaurantDTO.getOwnerId() != null && (!restaurantDTO.getOwnerId().equals(existingRestaurant.getOwner().getId()))) {
+            User newOwner = userRepository.findById(restaurantDTO.getOwnerId())
+                    .orElseThrow(() -> new NoSuchElementException("Owner not found with id: " + restaurantDTO.getOwnerId()));
             existingRestaurant.setOwner(newOwner);
         }
 
-        // Actualizar otros campos
         existingRestaurant.setName(restaurantDTO.getName());
         existingRestaurant.setDescription(restaurantDTO.getDescription());
         existingRestaurant.setOpeningHours(restaurantDTO.getOpeningHours());
         existingRestaurant.setClosingHours(restaurantDTO.getClosingHours());
         existingRestaurant.setAddress(restaurantDTO.getAddress());
 
-        // Guardar los cambios
         Restaurant updatedRestaurant = restaurantRepository.save(existingRestaurant);
 
-        // Convertir a DTO y devolver
+
         return RestaurantMapper.toRestaurantDTO(updatedRestaurant);
     }
 
     @Override
-    public RestaurantDTO getRestaurantById(int id) {
-        return null;
+    public RestaurantDTO getRestaurantById(Integer id) {
+        Restaurant findedRestaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Restaurant not found with id: " + id));
+        return RestaurantMapper.toRestaurantDTO(findedRestaurant);
     }
 
     @Override
@@ -88,7 +83,53 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public boolean deleteRestaurant(int id) {
+    public boolean deleteRestaurant(Integer id) {
         return false;
     }
+
+    @Override
+    public RestaurantWithMenusDTO getRestaurantWithMenusById(Integer id) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Restaurant not found"));
+
+        RestaurantWithMenusDTO restaurantWithMenusDTO = new RestaurantWithMenusDTO();
+        restaurantWithMenusDTO.setId(restaurant.getId());
+        restaurantWithMenusDTO.setName(restaurant.getName());
+        restaurantWithMenusDTO.setDescription(restaurant.getDescription());
+        restaurantWithMenusDTO.setOpeningHours(restaurant.getOpeningHours());
+        restaurantWithMenusDTO.setClosingHours(restaurant.getClosingHours());
+        restaurantWithMenusDTO.setAddress(restaurant.getAddress());
+
+        List<MenuAndDishesDTO> menuAndDishesDTOS = restaurant.getMenuList().stream().map(
+                        menu -> {
+                            MenuAndDishesDTO menuAndDishesDTO = new MenuAndDishesDTO();
+                            menuAndDishesDTO.setId(menu.getId());
+                            menuAndDishesDTO.setName(menu.getName());
+
+                            List<DishDTO> dishDTOS = menu.getDishes().stream().map(
+                                    dish -> {
+                                        DishDTO dishDTO = new DishDTO();
+                                        dishDTO.setId(dish.getId());
+                                        dishDTO.setName(dish.getName());
+                                        dishDTO.setDescription(dish.getDescription());
+                                        dishDTO.setPrice(dish.getPrice());
+                                        return dishDTO;
+                                    }
+                            ).toList();
+
+                            menuAndDishesDTO.setDishes(dishDTOS);
+                            return menuAndDishesDTO;
+                        }
+                ).toList();
+
+        restaurantWithMenusDTO.setMenus(menuAndDishesDTOS);
+        return restaurantWithMenusDTO;
+    }
+    @Override
+    public List<RestaurantDTO> getRestaurantByDishTags(List<Integer> tagsIds){
+        List<Restaurant> restaurants = restaurantRepository.findRestaurantsByDishTags(tagsIds,tagsIds.size());
+        return restaurants.stream()
+                .map(RestaurantMapper::toRestaurantDTO).toList();
+    }
+
 }

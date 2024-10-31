@@ -1,7 +1,8 @@
 package com.juan.helpfood.services.impl;
 
-import com.juan.helpfood.dtos.SignInUserDTO;
-import com.juan.helpfood.dtos.UserDTO;
+import com.juan.helpfood.dtos.userDTOs.SignInUserDTO;
+import com.juan.helpfood.dtos.userDTOs.UpdatePasswordDTO;
+import com.juan.helpfood.dtos.userDTOs.UserDTO;
 import com.juan.helpfood.entities.User;
 import com.juan.helpfood.mappers.UserMapper;
 import com.juan.helpfood.repositories.UserRepository;
@@ -27,44 +28,57 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO createUser(SignInUserDTO userDTO) {
-        if(userRepository.existsByEmail(userDTO.getEmail())){
+    public UserDTO createUser(SignInUserDTO signInUserDTO) {
+        if(userRepository.existsByEmail(signInUserDTO.getEmail())){
             throw new IllegalArgumentException("Email already exists");
         }
 
-        User user = UserMapper.toUser(userDTO);
+        User user = UserMapper.toUser(signInUserDTO);
 
-        if(userDTO.getPassword().length() < 8){
+        if(signInUserDTO.getPassword().length() < 8){
             throw new IllegalArgumentException("Password must be at least 8 characters");
         }
 
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setPassword(passwordEncoder.encode(signInUserDTO.getPassword()));
         user = userRepository.save(user);
 
         return UserMapper.toUserDto(user);
     }
 
     @Override
-    public UserDTO updateUser(UserDTO userDTO) {
+    public UserDTO updateUserProfile(UserDTO userDTO) {
         User existingUser = userRepository.findById(userDTO.getId())
                 .orElseThrow(()->new NoSuchElementException("User not found with id: " + userDTO.getId()));
 
-        existingUser.setName(userDTO.getName());
+        existingUser.setUsername(userDTO.getUsername());
 
         if(!existingUser.getEmail().equals(userDTO.getEmail())){
             if(userRepository.existsByEmail(userDTO.getEmail())){
                 throw new IllegalArgumentException("Email already exists");
             }
+            existingUser.setEmail(userDTO.getEmail());
         }
-        if(userDTO.getPassword() != null && userDTO.getPassword().length() >= 8){
-            existingUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        }
-
-        existingUser.setPassword(userDTO.getPassword());
 
         User updatedUser = userRepository.save(existingUser);
 
         return UserMapper.toUserDto(updatedUser);
+    }
+
+    @Override
+    public boolean updatePassword(int userId, UpdatePasswordDTO updatePasswordDTO) {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(()->new NoSuchElementException("User not found with id: " + userId));
+        if (!passwordEncoder.matches(updatePasswordDTO.getCurrentPassword(), existingUser.getPassword())){
+            throw new IllegalArgumentException("Current password does not match");
+        }
+        if (!passwordEncoder.matches(updatePasswordDTO.getNewPassword(), existingUser.getPassword())){
+            throw new IllegalArgumentException("New password does not match");
+        }
+
+        existingUser.setPassword(passwordEncoder.encode(updatePasswordDTO.getNewPassword()));
+        userRepository.save(existingUser);
+
+        return true;
     }
 
     @Override
