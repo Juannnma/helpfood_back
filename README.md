@@ -13,3 +13,10 @@ Este es el repositorio del backend del proyecto HelpFood, desarrollado como part
 ## Descripción
 
 HelpFood es una aplicación diseñada para simplificar la búsqueda de restaurantes adaptados a restricciones alimenticias y preferencias personales. Este backend fue desarrollado con **Spring Boot** y proporciona una API REST para la gestión de funcionalidades como restaurantes, menús, platos, reseñas, y restaurantes favoritos.
+## Tecnologias Utilizadas
+
+- **Java**
+- **Spring Boot**
+- **JWT (JSON Web Tokens)**
+
+
